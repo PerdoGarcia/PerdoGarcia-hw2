@@ -60,7 +60,7 @@ python api/index.py
 - Convert large numbers: Input "1234567" with input type "decimal" and output type "text"
 
 # Deploying
-The application should deploy to [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=vercel-examples) 
+The application should deploy to [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=vercel-examples)
 out of the box.
 
 Just Add New... > Project, import the Git repository, and off you go.
