@@ -8,22 +8,44 @@ app = Flask(__name__)
 
 def text_to_number(text):
     """Convert English text number to integer"""
-    if not isinstance(text, (str, int, float)):
+    if text is None:
         raise ValueError("Input must be a string or number")
 
+    # Handle negative numbers
+    is_negative = False
+    if isinstance(text, str):
+        text = text.strip().lower()
+        if text.startswith('negative '):
+            is_negative = True
+            text = text[9:]  # Remove 'negative ' prefix
+        elif text.startswith('minus '):
+            is_negative = True
+            text = text[6:]  # Remove 'minus ' prefix
+    
     # First, try to convert if it's already a number string
     if isinstance(text, (int, float)):
-        return int(text)
+        result = int(text)
+    elif isinstance(text, str) and not text:
+        raise ValueError("Empty input")
+    else:
+        # Try direct conversion first for numeric strings, including decimals
+        try:
+            # Handle decimal numbers by converting to float first, then int
+            return int(float(str(text).strip())) * (-1 if is_negative else 1)
+        except ValueError:
+            # Not a direct number, continue with text parsing
+            result = _parse_text_number(text)
+    
+    return -result if is_negative else result
 
-    text = str(text).lower().strip()
+def _parse_text_number(text):
+    """Parse text representation of a number to integer"""
+    if not isinstance(text, str):
+        raise ValueError("Input must be a string")
+    
+    text = text.lower().strip()
     if not text:
         raise ValueError("Empty input")
-
-    # Try direct conversion first for numeric strings
-    try:
-        return int(text)
-    except ValueError:
-        pass
 
     # Special cases
     if text in ['zero', 'nil']:
@@ -36,14 +58,15 @@ def text_to_number(text):
         'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15,
         'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19,
         'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50,
-        'sixty': 60, 'seventy': 70, 'eighty': 80, 'ninety': 90
+        'sixty': 60, 'seventy': 70, 'eighty': 80, 'ninety': 90,
+        'hundred': 100, 'thousand': 1000, 'million': 10**6, 'billion': 10**9
     }
 
     # Handle hyphenated numbers (e.g., twenty-one, forty-two)
     if '-' in text:
         parts = text.split('-')
         try:
-            return sum(text_to_number(part) for part in parts if part)
+            return sum(_parse_text_number(part) for part in parts if part)
         except ValueError:
             pass  # Try other methods if hyphen parsing fails
 
@@ -56,7 +79,7 @@ def text_to_number(text):
         t2d = text2digits.TextToDigits()
         result = t2d.convert(text)
         if result != text:  # If conversion happened
-            return int(result)
+            return int(float(result))  # Handle potential decimal results
     except:
         pass  # Fall through to manual parsing
 
@@ -66,32 +89,35 @@ def text_to_number(text):
         raise ValueError("No valid number words found")
 
     # Check for invalid words
-    valid_words = set(number_words.keys()) | {'hundred', 'thousand', 'million', 'billion'}
+    valid_words = set(number_words.keys())
     for word in words:
         if word not in valid_words:
-            raise ValueError(f"Invalid number word: {word}")
+            # Check if it's a number string (e.g., "42" in "42 apples")
+            try:
+                int(word)
+                continue
+            except ValueError:
+                # Only raise error if it's not a valid number word or digit
+                raise ValueError(f"Invalid number word: {word}")
 
-    # Convert words to numbers
+    # Parse the number
     result = 0
     current = 0
-
     for word in words:
-        if word == 'hundred':
-            current *= 100
-        elif word == 'thousand':
-            current *= 1000
+        # Handle numeric strings
+        if word.isdigit():
+            current = int(word)
+            continue
+            
+        value = number_words[word]
+        if value < 100:
+            current += value
+        elif value == 100:
+            current *= value
+        else:  # thousand, million, billion
+            current *= value
             result += current
             current = 0
-        elif word == 'million':
-            current *= 1000000
-            result += current
-            current = 0
-        elif word == 'billion':
-            current *= 1000000000
-            result += current
-            current = 0
-        else:
-            current += number_words[word]
 
     result += current
 
@@ -110,19 +136,51 @@ def number_to_text(number):
             except ValueError:
                 raise ValueError("Invalid number format")
 
-        # Use num2words and replace 'minus' with 'negative' for consistency
-        text = num2words(number)
-        return text.replace('minus', 'negative')
+        # Handle zero case
+        if number == 0:
+            return "zero"
+            
+        # Handle negative numbers
+        is_negative = number < 0
+        if is_negative:
+            number = abs(number)
+
+        # Use num2words to get the text
+        text = num2words(number, lang='en')
+        
+        # Clean up the text (remove 'and' and fix formatting)
+        text = text.replace(' and ', ' ').replace('-', ' ').replace('  ', ' ').strip()
+        
+        # Handle negative numbers
+        if is_negative:
+            text = f"negative {text}"
+            
+        return text
     except Exception as e:
         raise ValueError(f"Unable to convert number to text: {str(e)}")
 
 def base64_to_number(b64_str):
     """Convert base64 to integer using little-endian byte order"""
+    if not isinstance(b64_str, str) or not b64_str:
+        raise ValueError("Input must be a non-empty string")
+        
     try:
+        # Remove any padding characters that might cause issues
+        b64_str = b64_str.split('=')[0]
+        # Add padding if needed
+        padding = len(b64_str) % 4
+        if padding:
+            b64_str += '=' * (4 - padding)
+            
         decoded_bytes = base64.b64decode(b64_str)
+        if not decoded_bytes:  # Empty byte string
+            return 0
+            
         return int.from_bytes(decoded_bytes, byteorder='little', signed=True)
-    except:
-        raise ValueError("Invalid base64 input")
+    except (base64.binascii.Error, ValueError) as e:
+        raise ValueError(f"Invalid base64 input: {str(e)}")
+    except Exception as e:
+        raise ValueError(f"Error decoding base64: {str(e)}")
 
 def number_to_base64(number):
     """Convert integer to base64 using little-endian byte order"""

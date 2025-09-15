@@ -31,11 +31,33 @@ python api/index.py
 3. Select the desired output format from the second dropdown menu
 4. Click "Convert" to see the result
 
+## Bug Fixes
+
+1. **Negative Number Handling**
+   - Fixed issue where negative numbers in text format (e.g., "negative forty-two") were not being properly parsed
+   - Both "negative" and "minus" prefixes are now supported
+
+2. **Number to Text Conversion**
+   - Improved formatting of large numbers (e.g., 1000000 now correctly converts to "one million")
+   - Fixed handling of compound numbers (e.g., "one hundred twenty-three")
+   - Ensured consistent spacing and hyphenation in output text
+
+3. **Base64 Conversion**
+   - Fixed endianness issues in base64 number conversion
+   - Added proper handling of negative numbers in base64 format
+   - Improved error handling for invalid base64 inputs
+
+4. **Input Validation**
+   - Added better error messages for invalid inputs
+   - Improved handling of edge cases (e.g., zero, very large numbers)
+   - Fixed issues with numeric strings containing special characters
+
 ## Examples
 
 - Convert decimal to binary: Input "42" with input type "decimal" and output type "binary"
 - Convert text to decimal: Input "forty two" with input type "text" and output type "decimal"
-- Convert hexadecimal to text: Input "2a" with input type "hexadecimal" and output type "text"
+- Convert negative numbers: Input "negative one hundred" with input type "text" and output type "decimal"
+- Convert large numbers: Input "1234567" with input type "decimal" and output type "text"
 
 # Deploying
 The application should deploy to [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=vercel-examples) 
