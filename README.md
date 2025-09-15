@@ -1,7 +1,7 @@
 # Numeric Converter - cs1060-hw2-base
 Website:
-- perdo-garcia-hw2-6e0to3vbp-pedro-s-goated-team.vercel.app
-- perdo-garcia-hw2-git-bugfix-pedro-s-goated-team.vercel.app
+- https://perdo-garcia-hw2-lsoa68w8i-pedro-s-goated-team.vercel.app/
+
 
 
 A web-based application that converts numbers between different formats including:
