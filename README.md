@@ -1,4 +1,8 @@
 # Numeric Converter - cs1060-hw2-base
+Website:
+- https://perdo-garcia-hw2.vercel.app/
+- perdo-garcia-hw2-3s6emw9t4-pedro-s-goated-team.vercel.app
+
 
 A web-based application that converts numbers between different formats including:
 - English text (e.g., "one hundred twenty-three")
