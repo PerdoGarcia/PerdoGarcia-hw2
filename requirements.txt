@@ -3,4 +3,4 @@ num2words==0.5.13
 text2digits==0.1.0
 pytest==7.4.0
 pytest-cov==4.1.0
-pytest-anyio==3.7.1
+pytest-anyio>=3.6.2
